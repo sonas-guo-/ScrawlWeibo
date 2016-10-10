@@ -45,3 +45,6 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+*.py~
+ScrawlWeibo/ScrawlWeibo/spiders/.scrawler.py.swp
+*.pyc
