@@ -48,3 +48,4 @@ Temporary Items
 *.py~
 ScrawlWeibo/ScrawlWeibo/spiders/.scrawler.py.swp
 *.pyc
+*.js~
