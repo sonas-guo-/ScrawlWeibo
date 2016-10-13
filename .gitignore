@@ -49,3 +49,4 @@ Temporary Items
 ScrawlWeibo/ScrawlWeibo/spiders/.scrawler.py.swp
 *.pyc
 *.js~
+*.swp
