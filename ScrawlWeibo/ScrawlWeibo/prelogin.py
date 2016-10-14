@@ -26,15 +26,18 @@ class PreLogin():
         '''
         preUrl='https://login.sina.com.cn/sso/prelogin.php?entry=weibo&callback=sinaSSOController.preloginCallBack&su=&rsakt=mod&client=ssologin.js(v1.4.18)&_='
         preUrl+=str(int(time.time() * 1000))
-        print(preUrl)
         result=request.urlopen(preUrl)
         content=result.read()
         s=str(content,encoding='utf-8')
         sjson=s[s.find('{'):s.rfind('}')+1]
         self.data=json.loads(sjson)
-        print(self.data)
         su=self.get_username('13598410723')
         sp=self.get_password('497932893',self.data['nonce'],self.data['servertime'],self.data['pubkey'])
+        self.data['su']=su
+        self.data['sp']=sp
+        for key,value in self.data.items():
+            if type(value)==int:
+                self.data[key]=str(value)
     def get_username(self,username):
         su=base64.b64encode(username.encode("utf-8"))
         return su
@@ -45,5 +48,7 @@ class PreLogin():
         message = message.encode("utf-8")
         sp=rsa.encrypt(message, key).hex()
         return sp
+    def get_data(self):
+        return self.data
 if __name__=='__main__':
     prelogin=PreLogin()
