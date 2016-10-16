@@ -2,20 +2,26 @@
 import os
 import scrapy
 from scrapy.utils.response import get_base_url
-from scrapy.contrib.spiders import Rule
-from scrapy.contrib.linkextractors import LinkExtractor
+from scrapy.spiders import Rule,CrawlSpider
+from scrapy.linkextractors import LinkExtractor
 from urllib.parse import urlparse
 from scrapy.http import Request,FormRequest
+from scrapy.selector import Selector
 from ScrawlWeibo.prelogin import PreLogin
 import json
 import re
-class Scrawler(scrapy.Spider):
+import io
+import gzip
+import lxml
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
+class Scrawler(CrawlSpider):
     name = 'scrawler'
     start_urls = [
         #'http://newids.seu.edu.cn/authserver/login?goto=http://my.seu.edu.cn/index.portal'
-        "http://weibo.com/"
         ]
     rules={
+            #Rule(LinkExtractor(allow=('.*')), callback='parse_user')
         }
     headers={
             "User-Agent":"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0",
@@ -64,18 +70,59 @@ class Scrawler(scrapy.Spider):
     def after_redirect(self,response):
         print("redirected")
         content=response.body.decode('utf-8')
-        print(content)
+        #print(content)
         pattern=r'\"userinfo\":(.*?\})\}'
         userinfo=re.findall(pattern,content)[0]
         info=json.loads(userinfo)
         homepage='http://weibo.com/u/%s/home%s'%(info['uniqueid'],info['userdomain'])
         #print(homepage)
-        return Request(url=homepage,callback=self.login_successful)
+        return Request(url=homepage,headers={
+            "Accept-Encoding": "gzip"
+            },callback=self.login_successful)
     def login_successful(self,response):
         print("login successful")
-        open("test1.html", 'wb').write(response.body)
-    def parse(self,response):
-        print(response.url)
+        current_url=response.url
+        #print(current_url)
+        #print(response.body)
+        #open("test1.html", 'wb').write(response.body)
+        #获取自己的关注用户,粉丝
+        content=response.body
+        s=content.decode('utf-8','ignore')
+        pattern=r'/(\d+?)/'
+        usernumber=re.findall(pattern,current_url)[0]
+        watch_url=r'/%s/follow?rightmod=1&wvr=6'%(usernumber)
+        fan_url=r'/%s/fans?rightmod=1&wvr=6'%(usernumber)
+        watch_url=urljoin(current_url,watch_url)
+        fan_url=urljoin(current_url,fan_url)
+        yield Request(url=watch_url,callback=self.get_my_watches)
+    def get_my_watches(self,response):
+        print('getting my watches...')
+        content=response.body.decode('utf8')
+        #open('data.html','wb').write(content)
+        pattern=r'<li class=\\"member_li S_bg1\\"(.*?)<\\/li>'
+        results=re.findall(pattern,content)
+        for result in results:
+            #匹配follow的用户的<a>标签
+            pattern1=r'<div class=\\"title.*?(<a.*?<\\/a>)'
+            tag_a=re.findall(pattern1,result)[0]
+            if 'usercard' in tag_a:
+                href=re.findall(r'href=\\"(.*?)\\"',tag_a)[0]#用户的链接
+                title=re.findall(r'title=\\"(.*?)\\"',tag_a)[0]#用户名
+                usercard=re.findall(r'usercard=\\"id=(.*?)\\"',tag_a)[0]#用户id
+                print(title)
+                print(href)
+                print(usercard)
+                print('分割')
+        pass
+    def parse_user(self,response):
+        print('parse user')
+        sel=response.xpath('//div[@id="Pl_Core_T8CustomTriColumn__3"]/div/div/div/table/tbody/tr')
+        all_watch_url=sel.xpath('//td[0]/a/@href').extract()
+        all_fans_url=sel.xpath('//td[1]/a/@href').extract()
+        all_weibo_url=sel.xpath('//td[last()]/a/@href').extract()
+        print(all_watch_url)
+    #def parse(self,response):
+        pass
         '''
         print('ready login')
         unready_prams=[
