@@ -97,8 +97,8 @@ class Scrawler(CrawlSpider):
         yield Request(url=watch_url,callback=self.get_my_watches)
     def get_my_watches(self,response):
         print('getting my watches...')
+        current_url=response.url
         content=response.body.decode('utf8')
-        #open('data.html','wb').write(content)
         pattern=r'<li class=\\"member_li S_bg1\\"(.*?)<\\/li>'
         results=re.findall(pattern,content)
         for result in results:
@@ -106,40 +106,50 @@ class Scrawler(CrawlSpider):
             pattern1=r'<div class=\\"title.*?(<a.*?<\\/a>)'
             tag_a=re.findall(pattern1,result)[0]
             if 'usercard' in tag_a:
-                href=re.findall(r'href=\\"(.*?)\\"',tag_a)[0]#用户的链接
+                raw_href=re.findall(r'href=\\"(.*?)\\"',tag_a)[0]#用户的链接
                 title=re.findall(r'title=\\"(.*?)\\"',tag_a)[0]#用户名
                 usercard=re.findall(r'usercard=\\"id=(.*?)\\"',tag_a)[0]#用户id
-                print(title)
-                print(href)
-                print(usercard)
-                print('分割')
-        pass
+                href=raw_href.replace(r'\/','/')
+                full_href=urljoin(current_url,href)
+                #print(title)
+                #print(full_href)
+                yield Request(url=full_href,callback=self.parse_user)
+                #print(usercard)
+                #print('分割')
+        pattern=r'<a bpfilter=\\"page\\" class=\\"page next S_txt1 S_line1\\".*?href=\\"(.*?)\\"><span>'
+        result=re.findall(pattern,content)
+        if result:
+            raw_url=result[0]
+            next_url=raw_url.replace(r'\/','/')
+            full_next_url=urljoin(current_url,next_url)
+            yield Request(url=full_next_url,callback=self.get_my_watches)
     def parse_user(self,response):
         print('parse user')
-        sel=response.xpath('//div[@id="Pl_Core_T8CustomTriColumn__3"]/div/div/div/table/tbody/tr')
-        all_watch_url=sel.xpath('//td[0]/a/@href').extract()
-        all_fans_url=sel.xpath('//td[1]/a/@href').extract()
-        all_weibo_url=sel.xpath('//td[last()]/a/@href').extract()
-        print(all_watch_url)
-    #def parse(self,response):
+        current_url=response.url
+        content=response.body.decode('utf8')
+        pattern=r'<table class=\\"tb_counter\\".*?<tr>.*<\\/tr>.*?<\\/table>'
+        match_result=re.findall(pattern,content)
+        if match_result:
+            result=match_result[0]
+            ntag_a=re.findall(r'<a.*?a>',result)
+            if ntag_a:
+                for tag_a in ntag_a:
+                    #print(tag_a)
+                    if '微博' in tag_a:
+                        #print(tag_a)
+                        match_weibo_url=re.findall(r'href=\\"(.*?)\\"',tag_a)
+                        if match_weibo_url:
+                            url=match_weibo_url[0]
+                            url=url.replace(r'\/','/')
+                            full_url=urljoin(current_url,url)
+                            yield Request(url=full_url,callback=self.get_all_weibos)
+                    if '关注' in tag_a:
+                        match_follow_url=re.findall(r'href=\\"(.*?)\\"',tag_a)
+                        if match_follow_url:
+                            url=match_follow_url[0]
+                            url=url.replace(r'\/','/')                            
+                            full_url=urljoin(current_url,url)
+                    if '粉丝' in tag_a:
+                        pass
+    def get_all_weibos(self,response):
         pass
-        '''
-        print('ready login')
-        unready_prams=[
-                'lt',
-                'dllt',
-                'execution',
-                '_eventId',
-                'rmShown'
-                ]
-        for item in unready_prams:
-            query='//div[@tabid="01"]/form/input[@name=\"'+item+'\"]/@value'
-            value=response.xpath(query).extract()
-            self.formdata[item]=value
-            print('%s=%s'%(item,value))
-        yield FormRequest(
-                "http://my.seu.edu.cn/index.portal",
-                self.headers,
-                self.formdata,
-                callback=self.after_login)
-        '''
