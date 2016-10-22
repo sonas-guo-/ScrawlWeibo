@@ -33,16 +33,23 @@ ROBOTSTXT_OBEY = False
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-#COOKIES_ENABLED = False
-
+COOKIES_ENABLED = True
+COOKIES_DEBUG = True
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
 
 # Override the default request headers:
-#DEFAULT_REQUEST_HEADERS = {
-#   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-#   'Accept-Language': 'en',
-#}
+DEFAULT_REQUEST_HEADERS = {
+   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+   'Accept-Language': 'en',
+   'Accept-Encoding': 'gzip, deflate',
+   'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
+   'Connection':'keep-alive',
+   'Host':'weibo.cn',
+   'Upgrade-Insecure-Requests':'1',
+   'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0',
+   'Cookie':'SCF=AnJFF8L6wR9zJ4vCHpHt2dHlyIQk6Cyra1AIxugDmi0MaraSefcPFzEoyu8qyODgVtM4fpt__bA9fdayJg1HSrw.; SUHB=0XDUVwVv5j6mxr; _T_WM=fa6aebdfa9ade0c0133052c1abd777c8; SUB=_2A251DzxBDeTxGedG71YQ9C7Oyz6IHXVW8EQJrDV6PUJbkdAKLRHtkW1TD4LmBAoa8NaA1ULhB1kiD7KaXQ..; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WFxw.fzHUb0FHrpb-vmMOv35JpX5o2p5NHD95Qp1hBXeKB7eo5EWs4Dqcj_i--ci-zpi-2Xi--fi-2NiKnci--fiKnfiKyFi--4i-zEiKnpi--ci-20i-88; WEIBOCN_FROM=feed; gsid_CTandWM=4ulIa6911M8dcTKKnXH5Z7JKc3g'
+}
 
 # Enable or disable spider middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
