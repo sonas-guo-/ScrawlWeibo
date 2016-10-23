@@ -47,8 +47,7 @@ DEFAULT_REQUEST_HEADERS = {
    'Connection':'keep-alive',
    'Host':'weibo.cn',
    'Upgrade-Insecure-Requests':'1',
-   'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0',
-   'Cookie':'SCF=AnJFF8L6wR9zJ4vCHpHt2dHlyIQk6Cyra1AIxugDmi0MaraSefcPFzEoyu8qyODgVtM4fpt__bA9fdayJg1HSrw.; SUHB=0XDUVwVv5j6mxr; _T_WM=fa6aebdfa9ade0c0133052c1abd777c8; SUB=_2A251DzxBDeTxGedG71YQ9C7Oyz6IHXVW8EQJrDV6PUJbkdAKLRHtkW1TD4LmBAoa8NaA1ULhB1kiD7KaXQ..; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WFxw.fzHUb0FHrpb-vmMOv35JpX5o2p5NHD95Qp1hBXeKB7eo5EWs4Dqcj_i--ci-zpi-2Xi--fi-2NiKnci--fiKnfiKyFi--4i-zEiKnpi--ci-20i-88; WEIBOCN_FROM=feed; gsid_CTandWM=4ulIa6911M8dcTKKnXH5Z7JKc3g'
+   'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0'
 }
 
 # Enable or disable spider middlewares

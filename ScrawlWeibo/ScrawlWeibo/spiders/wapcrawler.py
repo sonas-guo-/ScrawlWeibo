@@ -7,6 +7,7 @@ from urllib.parse import urlparse,urljoin
 from scrapy.http import Request,FormRequest
 from scrapy.selector import Selector
 from ScrawlWeibo.prelogin import PreLogin
+from ScrawlWeibo import UserConfig
 import urllib.request
 import json
 import re
@@ -27,7 +28,6 @@ class WapCrawler(CrawlSpider):
             "Accept-Language":"zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3",
             "Accept-Encoding":"gzip, deflate",
             "Upgrade-Insecure-Requests":'1',
-            "Cookie":"_T_WM=9da107c4d24d9741b24b81ae71783f72; SCF=Ak45nxsfcYhXK2ANTWTDAJGB9Oefvi9HE4z2Wi0HSqpjWxb2ClBWez8zBEx_6VShN1ieO1votN0dOFFKuzWeRLA.; SUHB=0wnEDXJFI2k3ja; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WFxw.fzHUb0FHrpb-vmMOv35JpX5KMhUgL.Fo2RShBpSh5Eehz2dJLoIEXLxKqLBo2LBKBLxK-LBKML1hqLxK-L1h-L12zLxK.LBozL1h2LxKqLBKeLB--t; WEIBOCN_FROM=home; SUB=_2AkMvWlcLdcNhrAJZnPwUyGvgbI9H-jzEiebBAn7oJhMyPRgv7k5eqSdkQ-oZXMfaejW4_ehXrkdb4gWv9Q..; PHPSESSID=c5fdfb70ff8778fe04165b1137e0d23f; M_WEIBOCN_PARAMS=from%3Dhome"
             }
     formdata={
             "backTitle":"微博",
@@ -37,35 +37,17 @@ class WapCrawler(CrawlSpider):
             "backURL":"http%3A%2F%2Fweibo.cn%2F%3Ffrom%3Dhome",
             "capId":"",
             "code":"",
-            "mobile":"13598410723",
+            "mobile":"",
             "remember":"on"
             }
     login_url=r'http://login.weibo.cn/login/?ns=1&revalid=2&backURL=http%3A%2F%2Fweibo.cn%2F%3Ffrom%3Dhome&backTitle=%CE%A2%B2%A9&vt='
-    can_direct_login=True
+    conf=UserConfig()
     def start_requests(self):
-        if self.can_direct_login:
-            print("ready directly login...")
-            yield Request(url="http://weibo.cn",cookies={
-                'SCF':'AnJFF8L6wR9zJ4vCHpHt2dHlyIQk6Cyra1AIxugDmi0MaraSefcPFzEoyu8qyODgVtM4fpt__bA9fdayJg1HSrw.',
-                'SUHB':'0XDUVwVv5j6mxr',
-                '_T_WM':'fa6aebdfa9ade0c0133052c1abd777c8',
-                'SUB':'_2A251DzxBDeTxGedG71YQ9C7Oyz6IHXVW8EQJrDV6PUJbkdAKLRHtkW1TD4LmBAoa8NaA1ULhB1kiD7KaXQ..',
-                'SUBP':'0033WrSXqPxfM725Ws9jqgMF55529P9D9WFxw.fzHUb0FHrpb-vmMOv35JpX5o2p5NHD95Qp1hBXeKB7eo5EWs4Dqcj_i--ci-zpi-2Xi--fi-2NiKnci--fiKnfiKyFi--4i-zEiKnpi--ci-20i-88',
-                'WEIBOCN_FROM':'feed',
-                'gsid_CTandWM':'4ulIa6911M8dcTKKnXH5Z7JKc3g'               
-                },callback=self.login_successful)
-        else:
-            print("reay login by post formdata")
-            yield Request(url=self.login_url,callback=self.prepare_login)
+        self.formdata['mobile']=self.conf.username
+        print("ready directly login...")
+        yield Request(url="http://weibo.cn",cookies=self.conf.cookies,callback=self.login_successful)
     def direct_login(self,response):
-        match_detail=response.xpath('//div[@class="u"]/div[@class="ut"]/a/text()').extract()
-        #open('data.html','wb').write(response.body)
-        if (match_detail):
-            print(match_detail)
-            detail=match_detail[0]
-            if detail=='详细资料':
-                self.login_successful(response)
-                return
+
         self.can_direct_login=False
         print('request again')
         self.start_requests()
@@ -93,7 +75,7 @@ class WapCrawler(CrawlSpider):
             self.formdata['capId']=capId
         if match_password_key:
             password_key=match_password_key[0]
-            self.formdata[password_key]='497932893'
+            self.formdata[password_key]=self.conf.password
         if match_backurl:
             backurl=match_backurl[0]
             self.formdata['backURL']=backurl
@@ -105,8 +87,19 @@ class WapCrawler(CrawlSpider):
         print(self.formdata)
         yield FormRequest(url=full_url,formdata=self.formdata,callback=self.login_successful)
     def login_successful(self,response):
+        #先看response的内容，是否是携带cookies登陆成功
+        match_detail=response.xpath('//div[@class="u"]/div[@class="ut"]/a/text()').extract()
+        login_with_cookies_flag=False
+        if (match_detail):
+            print(match_detail)
+            detail=match_detail[0]
+            if detail=='详细资料':
+                login_with_cookies_flag=True
+        if not login_with_cookies_flag:
+                print("login with cookies failed!\nreay login by post formdata...")
+                return Request(url=self.login_url,callback=self.prepare_login)
+        #登陆成功
         print("login_successful")
-        #open('data.html','wb').write(response.body)
         current_url=response.url
         match_follows_url=response.xpath('//div[@class="u"]/div[@class="tip2"]/a/@href').extract()
         if match_follows_url:
