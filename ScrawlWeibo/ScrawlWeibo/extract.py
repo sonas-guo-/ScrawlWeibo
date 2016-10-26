@@ -4,6 +4,7 @@ import datetime
 class Extract():
     def extract_datetime(self,text):
         text=text.strip()
+        text=text.replace('\xa0',' ')
         l=text.split(' ')
         now=datetime.datetime.now()
         result_datetime=now
@@ -15,6 +16,7 @@ class Extract():
                 hs=datetime.datetime.strptime(l[1],'%H:%M')
                 result_datetime=datetime.datetime.combine(now.date,hs.time)
             elif '月' in l[0] and '日' in l[0]:
+                #print(text)
                 mdhs=datetime.datetime.strptime(l[0]+l[1],'%m月%d日%H:%M')
                 result_datetime=datetime.datetime(year=now.year,month=mdhs.month,day=mdhs.day,hour=mdhs.hour,minute=mdhs.minute)
             else:

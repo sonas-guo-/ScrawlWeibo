@@ -7,6 +7,7 @@ from urllib.parse import urlparse,urljoin
 from scrapy.http import Request,FormRequest
 from scrapy.selector import Selector
 from ScrawlWeibo.prelogin import PreLogin
+from ScrawlWeibo.extract import Extract
 from ScrawlWeibo import UserConfig
 import urllib.request
 import json
@@ -139,8 +140,10 @@ class WapCrawler(CrawlSpider):
         match_weibos=response.xpath('//body/div[@class="c"]').extract()
         match_dates=response.xpath('//body/div[@class="c"]/div[last()]/span[@class="ct"]/text()').extract()
         if match_dates:
+            extract=Extract()
             for i in range(len(match_dates)):
                 raw_date=match_dates[i]
+                date=extract.extract_datetime(raw_date)
                 raw_weibo=match_weibos[i]
         match_pagenames=response.xpath('//div[@id="pagelist"]/form/div/a/text()').extract()
         match_pageurls=response.xpath('//div[@id="pagelist"]/form/div/a/@href').extract()
